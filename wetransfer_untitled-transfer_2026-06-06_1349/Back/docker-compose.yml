@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: vacuumpro_sqlserver
+    environment:
+      SA_PASSWORD: "Your_strong_P@ssw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserverdata:/var/opt/mssql
+
+  vacuumpro_api:
+    build:
+      context: ./VacuumPro.Api
+      dockerfile: Dockerfile
+    container_name: vacuumpro_api
+    depends_on:
+      - sqlserver
+    ports:
+      - "5073:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=VacuumProDb;User Id=sa;Password=Your_strong_P@ssw0rd;TrustServerCertificate=True;
+    volumes:
+      - ./VacuumPro.Api/wwwroot/uploads:/app/wwwroot/uploads
+
+volumes:
+  sqlserverdata:
